@@ -53,14 +53,20 @@ export const getTaskById = async (req, res) => {
 
 export const updateTask = async (req, res) => {
     try{
-        const task =  await Task.findOneAndUpdate(
+        const task = await Task.findOneAndUpdate(
             {
                 _id: req.params.id,
                 userId: req.user.id,
             },
-            req.body, 
-            { new : true} // to return the updated document
+            req.body,
+            { new: true } // to return the updated document
         );
+
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found",
+            });
+        }
 
         res.json(task);
     } catch(error){
@@ -77,6 +83,12 @@ export const deleteTask = async (req, res) => {
             userId: req.user.id,
         });
 
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found",
+            });
+        }
+
         res.json(task);
     } catch(error) {
         res.status(500).json({
@@ -92,12 +104,18 @@ export const toggleStatus = async (req, res) => {
             userId: req.user.id,
         });
 
-       task.status = 
-           task.status === "pending" ? "in-progress" :
-       task.status === "in-progress" ? "completed" : "pending";  //toggle between the three status
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found",
+            });
+        }
+
+        task.status =
+            task.status === "pending" ? "in-progress" :
+            task.status === "in-progress" ? "completed" : "pending";  // toggle between the three status
        
-       await task.save();
-       res.json(task);
+        await task.save();
+        res.json(task);
     } catch(error){
         res.status(500).json({
             message: error.message,

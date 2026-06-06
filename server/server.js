@@ -9,7 +9,7 @@ dotenv.config();
 app.use(cors());
 
 app.use('/api/auth', authRouters);
-app.use('/api/tasks', taskRouters);
+app.use('/api/tasks', taskRouters); 
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;

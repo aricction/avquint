@@ -28,10 +28,16 @@ export const register =  async(req , res) =>{
             email,
             password: hashedPassword,
          });
+
          res.status(201).json({
             message: "User created successfully",
-            user
-         })
+            token: generateToken(user), //return token on register
+            user: {                     // return user data on register
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+            },
+         });
     }
     catch(error){
         res.status(500).json({
