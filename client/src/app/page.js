@@ -1,9 +1,17 @@
 import Image from "next/image";
+import TaskForm from "./components/TaskForm";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans ">
-      <h1>Task management system </h1>
+    <div className="bg-white text-black font-sans transition-colors duration-200 min-h-screen">
+      <header className="px-4 sm:px-12 lg:px-16 py-6 w-full max-w-2xl mx-auto text-center">
+        <h1 className="font-bold text-2xl sm:text-2xl">Task management system</h1>
+      </header>
+      <div className="flex min-h-[calc(100vh-72px)] items-center justify-center">
+        <main className="px-4 sm:px-12 lg:px-16 py-10 w-full max-w-2xl">
+          <TaskForm />
+        </main>
+      </div>
     </div>
   );
 }
