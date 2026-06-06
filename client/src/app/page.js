@@ -1,5 +1,6 @@
 import Image from "next/image";
 import TaskForm from "./components/TaskForm";
+import TaskList from "./components/TaskList";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <div className="flex min-h-[calc(100vh-72px)] items-center justify-center">
         <main className="px-4 sm:px-12 lg:px-16 py-10 w-full max-w-2xl">
           <TaskForm />
+          <TaskList/>
         </main>
       </div>
     </div>

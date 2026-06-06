@@ -1,41 +1,118 @@
 "use client";
-import { createContext, useState, useContext } from "react";
-const TaskContext = createContext({ hi: "hello" });
+import axios from "axios";
+import { createContext, useState, useEffect, useContext } from "react";
 
-export function TaskProvider({children}) {
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    "Content-Type": "application/json",
+    ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
+  },
+});
+
+const TaskContext = createContext(null);
+
+const normalizeTask = (task) => ({
+  ...task,
+  id: task.id ?? task._id,  //converts task._id to task.id for client
+});
+
+export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const addTask = (title) => {
-    setTasks((prev) => [...prev, { id: Date.now(), title, completed: false }]);
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data } = await api.get("/api/tasks");
+      setTasks(Array.isArray(data) ? data.map(normalizeTask) : []); //
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteTask = (id) => {
-    setTasks((prev) =>
-      prev.filter((item) => item.id !== id),
-    );
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const addTask = async (title) => {
+    try {
+      setError(null);
+      const { data } = await api.post("/api/tasks", {
+        title,
+        description: title,
+      });
+      const normalized = normalizeTask(data);
+      setTasks((prev) => [...prev, normalized]);
+      return normalized;
+    } catch (err) {
+      console.error("Failed to add task:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
   };
 
-  const updateTask = (id) => {
-    setTasks((prev) =>
-      prev.map((tasks) => (tasks.id === id ? { ...tasks, title } : tasks)),
-    );
+  const deleteTask = async (id) => {
+    try {
+      setError(null);
+      await api.delete(`/api/tasks/${id}`);
+      setTasks((prev) => prev.filter((task) => task.id !== id));
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
   };
 
-  const toggleTask = (id) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id == id ? { ...task, completed: !task.completed } : task,
-      ),
-    );
+  const updateTask = async (id, title) => {
+    try {
+      setError(null);
+      const { data } = await api.put(`/api/tasks/${id}`, {
+        title,
+        description: title,
+      });
+      const normalized = normalizeTask(data);
+      setTasks((prev) => prev.map((item) => (item.id === id ? normalized : item)));
+      return normalized;
+    } catch (err) {
+      console.error("Failed to update task:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
   };
 
-  const values = ()=> ({
+  const toggleTask = async (id) => {
+    try {
+      setError(null);
+      const { data } = await api.patch(`/api/tasks/${id}/toggle`);
+      const normalized = normalizeTask(data);
+      setTasks((prev) => prev.map((item) => (item.id === id ? normalized : item)));
+      return normalized;
+    } catch (err) {
+      console.error("Failed to toggle task:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const values = {
+    tasks,
+    loading,
+    error,
     addTask,
     updateTask,
     deleteTask,
-    toggleTask
-  })
-  return <TaskContext.Provider value={values}>{children}</TaskContext.Provider>
+    toggleTask,
+  };
+
+  return <TaskContext.Provider value={values}>{children}</TaskContext.Provider>;
 }
 
 export const useTasks = () => useContext(TaskContext);
