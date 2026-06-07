@@ -24,8 +24,8 @@ export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editTask , setEditTask] = useState(null);
-
+  const [editTask, setEditTask] = useState(null);
+  const [filter, setFilter] = useState("all");
 
   const fetchTasks = async () => {
     try {
@@ -109,8 +109,18 @@ export function TaskProvider({ children }) {
     }
   };
 
+  const filterTasks = () => {
+    if (filter === "completed") {
+      return tasks.filter((t) => t.completed);
+    }
+    if (filter === "pending") {
+      return tasks.filter((t) => !t.completed);
+    }
+    return tasks;
+  };
+
   const values = {
-    tasks,
+    tasks: filterTasks(),
     loading,
     error,
     addTask,
@@ -119,7 +129,9 @@ export function TaskProvider({ children }) {
     toggleTask,
     startEdit,
     editTask,
-    cancelEdit
+    cancelEdit,
+    filter,
+    setFilter
   };
 
   return <TaskContext.Provider value={values}>{children}</TaskContext.Provider>;
