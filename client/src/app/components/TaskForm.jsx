@@ -1,19 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTasks } from "../context/TaskContext";
 
 const TaskForm = () => {
-  const { addTask } = useTasks();
+  const { addTask, editTask, updateTask, cancelEdit } = useTasks();
 
   const [input, setInput] = useState("");
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (editTask) {
+      setInput(editTask.title || "");
+    } else {
+      setInput("");
+    }
+  }, [editTask]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!input.trim()) return;
 
-    addTask(input.trim());
+    if (editTask) {
+      await updateTask(editTask.id, input.trim());
+      cancelEdit();
+      setInput("");
+      return;
+    }
+
+    await addTask(input.trim());
     setInput("");
   };
   return (
@@ -27,17 +42,33 @@ const TaskForm = () => {
             placeholder="add a task"
             className="w-full sm:flex-1 border border-gray-300  rounded px-4 py-2 bg-white  text-black  focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
           />
-
-          <button
-            className="
+          <div className="flex gap-3">
+            <button
+              className="
             w-full sm:w-[110px] h-[42px]
             bg-blue-600 dark:bg-blue-500 text-white rounded-md
             hover:bg-blue-700 dark:hover:bg-blue-600 transition
             disabled:opacity-50 disabled:cursor-not-allowed
-          "
-          >
-            Add
-          </button>
+            "
+            >
+              {editTask ? "update" : "add"}
+            </button>
+            {editTask && (
+              <button
+                className=" w-full sm:w-[110px] h-[42px]
+            bg-blue-600 dark:bg-blue-500 text-white rounded-md
+            hover:bg-blue-700 dark:hover:bg-blue-600 transition
+            disabled:opacity-50 disabled:cursor-not-allowed
+            "
+                onClick={() => {
+                  cancelEdit();
+                  setInput("");
+                }}
+              >
+                cancel
+              </button>
+            )}
+          </div>
         </div>
       </form>
     </div>

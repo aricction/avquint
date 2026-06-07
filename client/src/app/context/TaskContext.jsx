@@ -16,13 +16,16 @@ const TaskContext = createContext(null);
 
 const normalizeTask = (task) => ({
   ...task,
-  id: task.id ?? task._id,  //converts task._id to task.id for client
+  id: task.id ?? task._id, // converts task._id to task.id for client
+  completed: task.completed ?? (task.status === "completed"),
 });
 
 export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editTask , setEditTask] = useState(null);
+
 
   const fetchTasks = async () => {
     try {
@@ -87,6 +90,10 @@ export function TaskProvider({ children }) {
       throw err;
     }
   };
+  
+  const startEdit = (task)=> setEditTask(task);
+ const cancelEdit = ()=> setEditTask(null);
+
 
   const toggleTask = async (id) => {
     try {
@@ -110,6 +117,9 @@ export function TaskProvider({ children }) {
     updateTask,
     deleteTask,
     toggleTask,
+    startEdit,
+    editTask,
+    cancelEdit
   };
 
   return <TaskContext.Provider value={values}>{children}</TaskContext.Provider>;

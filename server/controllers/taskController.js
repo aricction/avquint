@@ -110,9 +110,7 @@ export const toggleStatus = async (req, res) => {
             });
         }
 
-        task.status =
-            task.status === "pending" ? "in-progress" :
-            task.status === "in-progress" ? "completed" : "pending";  // toggle between the three status
+        task.status = task.status === "completed" ? "pending" : "completed"; // toggle between pending and completed only
        
         await task.save();
         res.json(task);
