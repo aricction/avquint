@@ -17,9 +17,7 @@ const Navbar = () => {
     <header className="w-full bg-white border-b border-slate-200 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-        
           <nav className="flex items-center gap-3 text-sm text-slate-600">
-            
             {!user && (
               <>
                 <Link href="/login" className="hover:text-slate-900">
@@ -34,14 +32,15 @@ const Navbar = () => {
         </div>
 
         {user ? (
-          <div className="flex items-center gap-3 sm: ml-40">
+          <div className="flex items-center justify-end gap-3 w-full">
             <span className="text-slate-700">Hi, {user.username}</span>
+
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-lg bg-gray-600 px-4 py-2 text-white transition hover:bg-red-700"
+              className="flex items-center justify-center rounded-lg bg-gray-600 px-4 py-2 text-white transition hover:bg-gray-700"
             >
-             <MdLogout/>
+              <MdLogout />
             </button>
           </div>
         ) : null}
