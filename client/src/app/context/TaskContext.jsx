@@ -2,7 +2,7 @@
 import axios from "axios";
 import { createContext, useState, useEffect, useContext } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://avquint-cn2m.onrender.com";
 const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
 const api = axios.create({
   baseURL: API_BASE,
