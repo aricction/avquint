@@ -10,7 +10,7 @@ const Filters = () => {
       <select
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="border border-gray-300  rounded px-3 py-2 bg-white dark:bg-gray-600 text-black dark:text-white   transition-colors"
+        className="border border-gray-300  rounded-xl px-3 py-2 bg-white  text-black   transition-colors"
       >
         <option value="all">All</option>
         <option value="completed">Completed</option>

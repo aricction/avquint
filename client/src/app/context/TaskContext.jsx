@@ -26,6 +26,7 @@ export function TaskProvider({ children }) {
   const [error, setError] = useState(null);
   const [editTask, setEditTask] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -134,13 +135,22 @@ export function TaskProvider({ children }) {
   };
 
   const filterTasks = () => {
+    let filtered = tasks;
     if (filter === "completed") {
-      return tasks.filter((t) => t.completed);
+      filtered = filtered.filter((t) => t.completed);
     }
     if (filter === "pending") {
-      return tasks.filter((t) => !t.completed);
+      filtered = filtered.filter((t) => !t.completed);
     }
-    return tasks;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          t.title?.toLowerCase().includes(query) ||
+          t.description?.toLowerCase().includes(query),
+      );
+    }
+    return filtered;
   };
 
   const registerUser = async (userData) => {
@@ -208,6 +218,8 @@ export function TaskProvider({ children }) {
     cancelEdit,
     filter,
     setFilter,
+    searchQuery,
+    setSearchQuery,
     registerUser,
     loginUser,
     logout,

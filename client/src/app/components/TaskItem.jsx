@@ -5,10 +5,10 @@ import { useTasks } from "../context/TaskContext";
 const TaskItem = ({ task, onDelete, onToggle, onUpdate }) => {
     const { startEdit } = useTasks();
   return (
-    <li className="flex items-center gap-3 py-3 px-4 rounded-lg border border-gray-200  bg-white  transition-colors">
+    <li className="flex items-center gap-3 mb-2 py-3 px-4 rounded-xl border border-1 border-gray-300  bg-white  transition-colors">
+      <input type="checkbox" checked={!!task.completed} onChange={()=> onToggle(task.id)}/>
       <span
-        checked={!!task.completed}
-        onClick={() => onToggle(task.id)}
+        
         className={`flex-1 cursor-pointer ${
           task.completed ? "line-through text-black-400" : "text-black-900"
         }`}
