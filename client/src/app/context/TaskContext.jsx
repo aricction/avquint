@@ -17,7 +17,7 @@ const TaskContext = createContext(null);
 const normalizeTask = (task) => ({
   ...task,
   id: task.id ?? task._id, // converts task._id to task.id for client
-  completed: task.completed ?? (task.status === "completed"),
+  completed: task.completed ?? task.status === "completed",
 });
 
 export function TaskProvider({ children }) {
@@ -26,8 +26,12 @@ export function TaskProvider({ children }) {
   const [error, setError] = useState(null);
   const [editTask, setEditTask] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
 
   const fetchTasks = async () => {
+    if (!token) return;
     try {
       setLoading(true);
       setError(null);
@@ -42,7 +46,24 @@ export function TaskProvider({ children }) {
   };
 
   useEffect(() => {
-    fetchTasks();
+    if (token) {
+      api.defaults.headers.Authorization = `Bearer ${token}`;
+      fetchTasks();
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (storedToken) {
+      setToken(storedToken);
+      api.defaults.headers.Authorization = `Bearer ${storedToken}`;
+    }
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setAuthLoaded(true);
   }, []);
 
   const addTask = async (title) => {
@@ -82,7 +103,9 @@ export function TaskProvider({ children }) {
         description: title,
       });
       const normalized = normalizeTask(data);
-      setTasks((prev) => prev.map((item) => (item.id === id ? normalized : item)));
+      setTasks((prev) =>
+        prev.map((item) => (item.id === id ? normalized : item)),
+      );
       return normalized;
     } catch (err) {
       console.error("Failed to update task:", err);
@@ -90,17 +113,18 @@ export function TaskProvider({ children }) {
       throw err;
     }
   };
-  
-  const startEdit = (task)=> setEditTask(task);
- const cancelEdit = ()=> setEditTask(null);
 
+  const startEdit = (task) => setEditTask(task);
+  const cancelEdit = () => setEditTask(null);
 
   const toggleTask = async (id) => {
     try {
       setError(null);
       const { data } = await api.patch(`/api/tasks/${id}/toggle`);
       const normalized = normalizeTask(data);
-      setTasks((prev) => prev.map((item) => (item.id === id ? normalized : item)));
+      setTasks((prev) =>
+        prev.map((item) => (item.id === id ? normalized : item)),
+      );
       return normalized;
     } catch (err) {
       console.error("Failed to toggle task:", err);
@@ -119,6 +143,58 @@ export function TaskProvider({ children }) {
     return tasks;
   };
 
+  const registerUser = async (userData) => {
+    try {
+      const res = await api.post(`/api/auth/register`, userData);
+      const { token: authToken, user: authUser } = res.data;
+      setToken(authToken);
+      setUser(authUser);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", authToken);
+        localStorage.setItem("user", JSON.stringify(authUser));
+      }
+      api.defaults.headers.Authorization = `Bearer ${authToken}`;
+      await fetchTasks();
+      return res.data;
+    } catch (err) {
+      console.error("Failed to Register:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const loginUser = async (userData) => {
+    try {
+      const res = await api.post(`/api/auth/login`, userData);
+      const { token: authToken, user: authUser } = res.data;
+      setToken(authToken);
+      setUser(authUser);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", authToken);
+        localStorage.setItem("user", JSON.stringify(authUser));
+      }
+      api.defaults.headers.Authorization = `Bearer ${authToken}`;
+      await fetchTasks();
+      return res.data;
+    } catch (err) {
+      console.error("Failed to Login:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    setTasks([]);
+    setError(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+    delete api.defaults.headers.Authorization;
+  };
+
   const values = {
     tasks: filterTasks(),
     loading,
@@ -131,7 +207,13 @@ export function TaskProvider({ children }) {
     editTask,
     cancelEdit,
     filter,
-    setFilter
+    setFilter,
+    registerUser,
+    loginUser,
+    logout,
+    user,
+    token,
+    authLoaded,
   };
 
   return <TaskContext.Provider value={values}>{children}</TaskContext.Provider>;
